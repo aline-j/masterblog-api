@@ -1,37 +1,37 @@
 [
-  {
-    "id": 1,
-    "title": "My First Blog Post",
-    "content": "This is the content of my first blog post.",
-    "author": "Alice Example",
-    "date": "2023-06-07"
-  },
-  {
-    "id": 2,
-    "title": "Tips for Learning JavaScript",
-    "content": "In this post, I share my favorite tips and resources for learning JavaScript effectively.",
-    "author": "Bob Dev",
-    "date": "2023-07-15"
-  },
-  {
-    "id": 3,
-    "title": "A Journey Through the Alps",
-    "content": "Join me as I recount my hiking adventure through the breathtaking Alps!",
-    "author": "Clara Wanderlust",
-    "date": "2024-01-03"
-  },
-  {
-    "id": 4,
-    "title": "Why You Should Start Journaling",
-    "content": "Journaling can improve your mental clarity and emotional health. Here's how to start.",
-    "author": "Daniel Reflects",
-    "date": "2024-09-12"
-  },
-  {
-    "id": 5,
-    "title": "Top 5 VS Code Extensions for Developers",
-    "content": "Boost your productivity with these must-have VS Code extensions.",
-    "author": "Erin Code",
-    "date": "2025-05-22"
-  }
+    {
+        "id": 1,
+        "title": "My First Blog Post",
+        "content": "This is the content of my first blog post.",
+        "author": "Alice Example",
+        "date": "2023-06-07"
+    },
+    {
+        "id": 2,
+        "title": "Tips for Learning JavaScript",
+        "content": "In this post, I share my favorite tips and resources for learning JavaScript effectively.",
+        "author": "Bob Dev",
+        "date": "2023-07-15"
+    },
+    {
+        "id": 3,
+        "title": "A Journey Through the Alps",
+        "content": "Join me as I recount my hiking adventure through the breathtaking Alps!",
+        "author": "Clara Wanderlust",
+        "date": "2024-01-03"
+    },
+    {
+        "id": 4,
+        "title": "Why You Should Start Journaling",
+        "content": "Journaling can improve your mental clarity and emotional health. Here's how to start.",
+        "author": "Daniel Reflects",
+        "date": "2024-09-12"
+    },
+    {
+        "id": 5,
+        "title": "Top 5 VS Code Extensions for Developers",
+        "content": "Boost your productivity with these must-have VS Code extensions.",
+        "author": "Erin Code",
+        "date": "2025-05-22"
+    }
 ]
