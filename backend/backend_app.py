@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from nltk.toolbox import sort_fields
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -10,6 +11,7 @@ POSTS = [
 ]
 
 
+# Posts route
 @app.route('/api/posts', methods=['GET', 'POST'])
 def posts():
     if request.method == 'POST':
@@ -37,8 +39,23 @@ def posts():
         POSTS.append(new_post)
         return jsonify(new_post), 201
 
-    else:
-        return jsonify(POSTS)
+    sort_field = request.args.get('sort')
+    valid_fields = ['title', 'content']
+    if sort_field and sort_field not in valid_fields:
+        return jsonify({'error': 'Invalid sort field'}), 400
+
+    sort_direction = request.args.get('direction')
+    valid_directions = ['asc', 'desc']
+    if sort_direction and sort_direction not in valid_directions:
+        return jsonify({'error': 'Invalid sort direction'}), 400
+
+    result_posts = POSTS
+
+    if sort_field:
+        reverse = True if sort_direction == 'desc' else False
+        result_posts = sorted(POSTS, key=lambda post: post[sort_field].lower(), reverse=reverse)
+
+    return jsonify(result_posts)
 
 
 # Delete Route
