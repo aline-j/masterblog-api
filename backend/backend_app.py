@@ -60,9 +60,19 @@ def posts():
                 'missing': missing_fields
             }), 400
 
+        # Collect all IDs
+        ids = []
+        for post in posts:
+            ids.append(post['id'])
+        # Determine next ID
+        if ids:
+            new_id = max(ids) + 1
+        else:
+            new_id = 1
+
         # Create new post
         new_post = {
-            'id': len(posts) + 1,
+            'id': new_id,
             'title': data.get('title'),
             'content': data.get('content'),
             'author': data.get('author'),
