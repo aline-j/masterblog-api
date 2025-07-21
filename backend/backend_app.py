@@ -2,10 +2,13 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
+import json
+import os
 
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
+DATA_FILE = 'posts.json'
 
 SWAGGER_URL="/api/docs"  # swagger endpoint
 API_URL="/static/masterblog.json"
@@ -19,27 +22,26 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
 )
 app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
-POSTS = [
-    {
-        "id": 1,
-        "title": "My First Blog Post",
-        "content": "This is the content of my first blog post.",
-        "author": "Your Name",
-        "date": "2023-06-07"
-    },
-    {
-        "id": 2,
-        "title": "Second post",
-        "content": "This is the second post.",
-        "author": "Example Name",
-        "date": "2025-07-21"
-    },
-]
+
+# Load blog posts from the JSON file
+def load_posts():
+    if not os.path.exists(DATA_FILE):
+        return []
+    with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+# Save blog posts to the JSON file
+def save_posts(posts):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(posts, f, indent=4, ensure_ascii=False)
 
 
 # Posts route
 @app.route('/api/posts', methods=['GET', 'POST'])
 def posts():
+    posts = load_posts()
+
     if request.method == 'POST':
         data = request.get_json()
 
@@ -58,16 +60,16 @@ def posts():
                 'missing': missing_fields
             }), 400
 
-
         # Create new post
         new_post = {
-            'id': len(POSTS) + 1,
+            'id': len(posts) + 1,
             'title': data.get('title'),
             'content': data.get('content'),
             'author': data.get('author'),
             'date': datetime.now().strftime("%Y-%m-%d")
         }
-        POSTS.append(new_post)
+        posts.append(new_post)
+        save_posts(posts)
         return jsonify(new_post), 201
 
     # GET: optional sorting
@@ -81,19 +83,18 @@ def posts():
     if sort_direction and sort_direction not in valid_directions:
         return jsonify({'error': 'Invalid sort direction'}), 400
 
-    result_posts = POSTS
-
+    result_posts = posts
     if sort_field:
         reverse = True if sort_direction == 'desc' else False
         if sort_field == 'date':
             result_posts = sorted(
-                POSTS,
+                posts,
                 key=lambda post: datetime.strptime(post['date'], "%Y-%m-%d"),
                 reverse=reverse
             )
         elif sort_field in ['title', 'content', 'author']:
             result_posts = sorted(
-                POSTS,
+                posts,
                 key=lambda post: post[sort_field].lower(),
                 reverse=reverse
             )
@@ -104,15 +105,15 @@ def posts():
 # Delete Route
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete(post_id):
-    global POSTS
+    posts = load_posts()
 
     filtered_posts = []
-    for post in POSTS:
+    for post in posts:
         if post["id"] != post_id:
             filtered_posts.append(post)
 
-    if len(filtered_posts) < len(POSTS):
-        POSTS = filtered_posts
+    if len(filtered_posts) < len(posts):
+        save_posts(filtered_posts)
         return jsonify({"message": f"Post with id {post_id} has been deleted successfully."}), 200
     else:
         return jsonify({"error": f"No post found with id {post_id}."}), 404
@@ -121,11 +122,11 @@ def delete(post_id):
 # Update Route
 @app.route('/api/posts/<int:post_id>', methods=['PUT'])
 def update(post_id):
-    global POSTS
+    posts = load_posts()
     data = request.get_json()
 
     # Search post with matching ID
-    for post in POSTS:
+    for post in posts:
         if post["id"] == post_id:
             # Update only if fields have been passed
             post["title"] = data.get("title", post["title"])
@@ -133,6 +134,7 @@ def update(post_id):
             post["author"] = data.get("author", post["author"])
             post["date"] = datetime.now().strftime("%Y-%m-%d")
 
+            save_posts(posts)
             return jsonify(post), 200
 
     return jsonify({"error": f"No post found with id {post_id}."}), 404
@@ -141,14 +143,14 @@ def update(post_id):
 # Search Route
 @app.route('/api/posts/search', methods=['GET'])
 def search():
-    global POSTS
+    posts = load_posts()
     title_query = request.args.get('title', '').lower()
     content_query = request.args.get('content', '').lower()
     author_query = request.args.get('author', '').lower()
     date_query = request.args.get('date', '')
 
     results = []
-    for post in POSTS:
+    for post in posts:
         title_match = title_query in post['title'].lower()
         content_match = content_query in post['content'].lower()
         author_match = author_query in post['author'].lower()
