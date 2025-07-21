@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
+from datetime import datetime
+
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -18,8 +20,20 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
 app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
 POSTS = [
-    {"id": 1, "title": "First post", "content": "This is the first post."},
-    {"id": 2, "title": "Second post", "content": "This is the second post."},
+    {
+        "id": 1,
+        "title": "My First Blog Post",
+        "content": "This is the content of my first blog post.",
+        "author": "Your Name",
+        "date": "2023-06-07"
+    },
+    {
+        "id": 2,
+        "title": "Second post",
+        "content": "This is the second post.",
+        "author": "Example Name",
+        "date": "2025-07-21"
+    },
 ]
 
 
@@ -35,6 +49,8 @@ def posts():
             missing_fields.append('title')
         if not data.get('content'):
             missing_fields.append('content')
+        if not data.get('author'):
+            missing_fields.append('author')
 
         if missing_fields:
             return jsonify({
@@ -42,17 +58,21 @@ def posts():
                 'missing': missing_fields
             }), 400
 
+
         # Create new post
         new_post = {
             'id': len(POSTS) + 1,
             'title': data.get('title'),
             'content': data.get('content'),
+            'author': data.get('author'),
+            'date': datetime.now().strftime("%Y-%m-%d")
         }
         POSTS.append(new_post)
         return jsonify(new_post), 201
 
+    # GET: optional sorting
     sort_field = request.args.get('sort')
-    valid_fields = ['title', 'content']
+    valid_fields = ['title', 'content', 'author', 'date']
     if sort_field and sort_field not in valid_fields:
         return jsonify({'error': 'Invalid sort field'}), 400
 
@@ -65,7 +85,18 @@ def posts():
 
     if sort_field:
         reverse = True if sort_direction == 'desc' else False
-        result_posts = sorted(POSTS, key=lambda post: post[sort_field].lower(), reverse=reverse)
+        if sort_field == 'date':
+            result_posts = sorted(
+                POSTS,
+                key=lambda post: datetime.strptime(post['date'], "%Y-%m-%d"),
+                reverse=reverse
+            )
+        elif sort_field in ['title', 'content', 'author']:
+            result_posts = sorted(
+                POSTS,
+                key=lambda post: post[sort_field].lower(),
+                reverse=reverse
+            )
 
     return jsonify(result_posts)
 
@@ -99,6 +130,9 @@ def update(post_id):
             # Update only if fields have been passed
             post["title"] = data.get("title", post["title"])
             post["content"] = data.get("content", post["content"])
+            post["author"] = data.get("author", post["author"])
+            post["date"] = datetime.now().strftime("%Y-%m-%d")
+
             return jsonify(post), 200
 
     return jsonify({"error": f"No post found with id {post_id}."}), 404
@@ -110,23 +144,25 @@ def search():
     global POSTS
     title_query = request.args.get('title', '').lower()
     content_query = request.args.get('content', '').lower()
+    author_query = request.args.get('author', '').lower()
+    date_query = request.args.get('date', '')
 
     results = []
     for post in POSTS:
         title_match = title_query in post['title'].lower()
         content_match = content_query in post['content'].lower()
-        if title_query and content_query:
-            if title_match or content_match:
-                results.append(post)
-        elif title_query:
-            if title_match:
-                results.append(post)
-        elif content_query:
-            if content_match:
-                results.append(post)
+        author_match = author_query in post['author'].lower()
+        date_match = date_query in post['date']
 
-        return jsonify(results), 200
-    return False
+        if (
+            (title_query and title_match)
+            or (content_query and content_match)
+            or (author_query and author_match)
+            or (date_query and date_match)
+        ):
+            results.append(post)
+
+    return jsonify(results), 200
 
 
 if __name__ == '__main__':
