@@ -29,7 +29,7 @@ function loadPosts() {
                 postDiv.className = 'post';
                 postDiv.innerHTML = `
                     <h2>${post.title}</h2>
-                    <h4>${post.author}</h4>
+                    <h4>${post.author} on ${post.date}</h4>
                     <p>${post.content}</p>
                 <button onclick="deletePost(${post.id})">Delete</button>`;
                 postContainer.appendChild(postDiv);
